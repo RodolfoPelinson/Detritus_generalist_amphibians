@@ -1,10 +1,8 @@
 ---
-title: "GLMM_observational"
+title: "Observational_study"
 author: "Rodolfo Pelinson"
-format: website
-editor: visual
-editor_options: 
-  chunk_output_type: console
+date: "2024-09-17"
+output: github_document
 ---
 
 ## Occurrence, density, biomass and individual performance analysis of generalist amphibians.
@@ -343,7 +341,12 @@ axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 #text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
 ```
 
-/ / / /
+
+\ 
+\ 
+\ 
+\ 
+\ 
 
 ## Density
 
@@ -597,13 +600,18 @@ axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 #text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
 ```
 
-/ / / /
+
+\ 
+\ 
+\ 
+\ 
+\ 
 
 ## Occurrence
 
 #### D. nanus
 
-```{r}
+```{r, echo = FALSE}
 
 
 land_use_pastagem_cana <- rep(NA, nrow(occurrence))
@@ -612,7 +620,6 @@ for(i in 1:nrow(occurrence)){
     land_use_pastagem_cana[i] <- "pastagem-canavial"
   }else{land_use_pastagem_cana[i] <- as.character(occurrence$land_use[i])}
 }
-land_use_pastagem_cana
 
 land_use_pastagem_cerrado <- rep(NA, nrow(occurrence))
 for(i in 1:nrow(occurrence)){
@@ -620,7 +627,6 @@ for(i in 1:nrow(occurrence)){
     land_use_pastagem_cerrado[i] <- "pastagem-cerrado"
   }else{land_use_pastagem_cerrado[i] <- as.character(occurrence$land_use[i])}
 }
-land_use_pastagem_cerrado
 
 land_use_canavial_cerrado <- rep(NA, nrow(occurrence))
 for(i in 1:nrow(occurrence)){
@@ -628,7 +634,6 @@ for(i in 1:nrow(occurrence)){
     land_use_canavial_cerrado[i] <- "canavial-cerrado"
   }else{land_use_canavial_cerrado[i] <- as.character(occurrence$land_use[i])}
 }
-land_use_canavial_cerrado
 
 occurrence <- data.frame(occurrence, land_use_pastagem_cana, land_use_pastagem_cerrado,land_use_canavial_cerrado)
 
@@ -885,11 +890,16 @@ axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.
 box()
 ```
 
-/ / / /
+
+\ 
+\ 
+\ 
+\ 
+\ 
 
 ## BCI
 
-```{r}
+```{r, echo = FALSE}
 
 uso_da_terra_pasto_cana <- rep(NA, nrow(condicao))
 for(i in 1:nrow(condicao)){
@@ -897,7 +907,6 @@ for(i in 1:nrow(condicao)){
                 uso_da_terra_pasto_cana[i] <- "pasto-cana"
         }else{uso_da_terra_pasto_cana[i] <- as.character(condicao$uso_da_terra[i])}
 }
-uso_da_terra_pasto_cana
 
 uso_da_terra_pasto_cerrado <- rep(NA, nrow(condicao))
 for(i in 1:nrow(condicao)){
@@ -905,7 +914,6 @@ for(i in 1:nrow(condicao)){
                 uso_da_terra_pasto_cerrado[i] <- "pasto-cerrado"
         }else{uso_da_terra_pasto_cerrado[i] <- as.character(condicao$uso_da_terra[i])}
 }
-uso_da_terra_pasto_cerrado
 
 uso_da_terra_cana_cerrado <- rep(NA, nrow(condicao))
 for(i in 1:nrow(condicao)){
@@ -913,7 +921,6 @@ for(i in 1:nrow(condicao)){
                 uso_da_terra_cana_cerrado[i] <- "cana-cerrado"
         }else{uso_da_terra_cana_cerrado[i] <- as.character(condicao$uso_da_terra[i])}
 }
-uso_da_terra_cana_cerrado
 
 condicao <- data.frame(condicao, uso_da_terra_pasto_cana, uso_da_terra_pasto_cerrado,uso_da_terra_cana_cerrado)
 ```

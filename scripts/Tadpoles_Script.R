@@ -1,0 +1,278 @@
+library(glmmTMB)
+library(bbmle)
+library(DHARMa)
+
+
+data_table <- read.csv("tadpoles_data.csv")
+
+data_table$Treatment <- factor(data_table$Leaf.Litter.Treatment, levels = c("Cerrado","Pasture","Sugarcane"))
+data_table$Aquarium <- factor(data_table$Aquarium)
+
+
+Treatment_Pasture_Sugarcane <- rep(NA, nrow(data_table))
+for(i in 1:nrow(data_table)){
+  if(data_table$Treatment[i] == "Pasture" | data_table$Treatment[i] == "Sugarcane"){
+    Treatment_Pasture_Sugarcane[i] <- "Pasture-Sugarcane"
+  }else{Treatment_Pasture_Sugarcane[i] <- as.character(data_table$Treatment[i])}
+}
+Treatment_Pasture_Sugarcane
+
+Treatment_Pasture_Cerrado <- rep(NA, nrow(data_table))
+for(i in 1:nrow(data_table)){
+  if(data_table$Treatment[i] == "Pasture" | data_table$Treatment[i] == "Cerrado"){
+    Treatment_Pasture_Cerrado[i] <- "Pasture-Cerrado"
+  }else{Treatment_Pasture_Cerrado[i] <- as.character(data_table$Treatment[i])}
+}
+Treatment_Pasture_Cerrado
+
+Treatment_Sugarcane_Cerrado <- rep(NA, nrow(data_table))
+for(i in 1:nrow(data_table)){
+  if(data_table$Treatment[i] == "Sugarcane" | data_table$Treatment[i] == "Cerrado"){
+    Treatment_Sugarcane_Cerrado[i] <- "Sugarcane-Cerrado"
+  }else{Treatment_Sugarcane_Cerrado[i] <- as.character(data_table$Treatment[i])}
+}
+
+Treatment_Sugarcane_Cerrado
+
+data_table <- data.frame(data_table, Treatment_Pasture_Sugarcane, Treatment_Pasture_Cerrado,Treatment_Sugarcane_Cerrado)
+
+#########
+
+data_table_nattereri <- data_table[which(data_table$Species == "P. nattereri"),]
+data_table_scinax <- data_table[which(data_table$Species == "S. fuscovarius"),]
+data_table_cuvieri <- data_table[which(data_table$Species == "P. cuvieri"),]
+data_table_centralis <- data_table[which(data_table$Species == "P. centralis"),]
+
+data_table <- rbind(data_table_centralis ,data_table_cuvieri, data_table_nattereri, data_table_scinax)
+
+
+
+
+### S. fuscovarius
+
+
+mass_scinax_no_effect <- glmmTMB(Tadpole.Mass~ 1 + (1|Aquarium), data=data_table_scinax, family=Gamma(link = "log"))
+mass_scinax_land <- glmmTMB(Tadpole.Mass~ Treatment + (1|Aquarium), data=data_table_scinax, family=Gamma(link = "log"))
+mass_scinax_Pasture_Sugarcane_model <- glmmTMB(Tadpole.Mass ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_scinax, family=Gamma(link = "log"))
+mass_scinax_Pasture_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_scinax, family=Gamma(link = "log"))
+mass_scinax_Sugarcane_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_scinax, family=Gamma(link = "log"))
+
+
+AICTAB_mass_scinax <- AICctab(mass_scinax_no_effect, mass_scinax_land, mass_scinax_Pasture_Sugarcane_model,mass_scinax_Pasture_Cerrado_model,mass_scinax_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                 mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_mass_scinax
+
+### P. cuvieri
+
+mass_cuvieri_no_effect <- glmmTMB(Tadpole.Mass~ 1 + (1|Aquarium), data=data_table_cuvieri, family=Gamma(link = "log"))
+mass_cuvieri_land <- glmmTMB(Tadpole.Mass~ Treatment + (1|Aquarium), data=data_table_cuvieri, family=Gamma(link = "log"))
+mass_cuvieri_Pasture_Sugarcane_model <- glmmTMB(Tadpole.Mass ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_cuvieri, family=Gamma(link = "log"))
+mass_cuvieri_Pasture_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_cuvieri, family=Gamma(link = "log"))
+mass_cuvieri_Sugarcane_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_cuvieri, family=Gamma(link = "log"))
+
+
+AICTAB_mass_cuvieri <- AICctab(mass_cuvieri_no_effect, mass_cuvieri_land, mass_cuvieri_Pasture_Sugarcane_model,mass_cuvieri_Pasture_Cerrado_model,mass_cuvieri_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                  mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_mass_cuvieri
+
+### P. nattereri
+
+mass_nattereri_no_effect <- glmmTMB(Tadpole.Mass~ 1 + (1|Aquarium), data=data_table_nattereri, family=Gamma(link = "log"))
+mass_nattereri_land <- glmmTMB(Tadpole.Mass~ Treatment + (1|Aquarium), data=data_table_nattereri, family=Gamma(link = "log"))
+mass_nattereri_Pasture_Sugarcane_model <- glmmTMB(Tadpole.Mass ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_nattereri, family=Gamma(link = "log"))
+mass_nattereri_Pasture_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_nattereri, family=Gamma(link = "log"))
+mass_nattereri_Sugarcane_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_nattereri, family=Gamma(link = "log"))
+
+
+AICTAB_mass_nattereri <- AICctab(mass_nattereri_no_effect, mass_nattereri_land, mass_nattereri_Pasture_Sugarcane_model,mass_nattereri_Pasture_Cerrado_model,mass_nattereri_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                    mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_mass_nattereri
+
+### P. centralis
+
+mass_centralis_no_effect <- glmmTMB(Tadpole.Mass~ 1 + (1|Aquarium), data=data_table_centralis, family=Gamma(link = "log"))
+mass_centralis_land <- glmmTMB(Tadpole.Mass~ Treatment + (1|Aquarium), data=data_table_centralis, family=Gamma(link = "log"))
+mass_centralis_Pasture_Sugarcane_model <- glmmTMB(Tadpole.Mass ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_centralis, family=Gamma(link = "log"))
+mass_centralis_Pasture_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_centralis, family=Gamma(link = "log"))
+mass_centralis_Sugarcane_Cerrado_model <- glmmTMB(Tadpole.Mass~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_centralis, family=Gamma(link = "log"))
+
+
+AICTAB_mass_centralis <- AICctab(mass_centralis_no_effect, mass_centralis_land, mass_centralis_Pasture_Sugarcane_model,mass_centralis_Pasture_Cerrado_model,mass_centralis_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                    mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_mass_centralis 
+
+
+##############################################################
+################################################################
+                     #STAGE
+#################################################################
+##################################################################
+
+
+### S. fuscovarius
+
+
+stage_scinax_no_effect <- glmmTMB(Gosner.Stage~ 1 + (1|Aquarium), data=data_table_scinax, family=gaussian(link = "identity"))
+stage_scinax_land <- glmmTMB(Gosner.Stage~ Treatment + (1|Aquarium), data=data_table_scinax, family=gaussian(link = "identity"))
+stage_scinax_Pasture_Sugarcane_model <- glmmTMB(Gosner.Stage ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_scinax, family=gaussian(link = "identity"))
+stage_scinax_Pasture_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_scinax, family=gaussian(link = "identity"))
+stage_scinax_Sugarcane_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_scinax, family=gaussian(link = "identity"))
+
+
+AICTAB_stage_scinax <- AICctab(stage_scinax_no_effect, stage_scinax_land, stage_scinax_Pasture_Sugarcane_model,stage_scinax_Pasture_Cerrado_model,stage_scinax_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                    mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_stage_scinax
+
+### P. cuvieri
+
+stage_cuvieri_no_effect <- glmmTMB(Gosner.Stage~ 1 + (1|Aquarium), data=data_table_cuvieri, family=gaussian(link = "identity"))
+stage_cuvieri_land <- glmmTMB(Gosner.Stage~ Treatment + (1|Aquarium), data=data_table_cuvieri, family=gaussian(link = "identity"))
+stage_cuvieri_Pasture_Sugarcane_model <- glmmTMB(Gosner.Stage ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_cuvieri, family=gaussian(link = "identity"))
+stage_cuvieri_Pasture_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_cuvieri, family=gaussian(link = "identity"))
+stage_cuvieri_Sugarcane_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_cuvieri, family=gaussian(link = "identity"))
+
+
+AICTAB_stage_cuvieri <- AICctab(stage_cuvieri_no_effect, stage_cuvieri_land, stage_cuvieri_Pasture_Sugarcane_model,stage_cuvieri_Pasture_Cerrado_model,stage_cuvieri_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                     mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_stage_cuvieri
+
+### P. nattereri
+
+stage_nattereri_no_effect <- glmmTMB(Gosner.Stage~ 1 + (1|Aquarium), data=data_table_nattereri, family=gaussian(link = "identity"))
+stage_nattereri_land <- glmmTMB(Gosner.Stage~ Treatment + (1|Aquarium), data=data_table_nattereri, family=gaussian(link = "identity"))
+stage_nattereri_Pasture_Sugarcane_model <- glmmTMB(Gosner.Stage ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_nattereri, family=gaussian(link = "identity"))
+stage_nattereri_Pasture_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_nattereri, family=gaussian(link = "identity"))
+stage_nattereri_Sugarcane_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_nattereri, family=gaussian(link = "identity"))
+
+
+AICTAB_stage_nattereri <- AICctab(stage_nattereri_no_effect, stage_nattereri_land, stage_nattereri_Pasture_Sugarcane_model,stage_nattereri_Pasture_Cerrado_model,stage_nattereri_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                       mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_stage_nattereri
+
+### P. centralis
+
+stage_centralis_no_effect <- glmmTMB(Gosner.Stage~ 1 + (1|Aquarium), data=data_table_centralis, family=gaussian(link = "identity"))
+stage_centralis_land <- glmmTMB(Gosner.Stage~ Treatment + (1|Aquarium), data=data_table_centralis, family=gaussian(link = "identity"))
+stage_centralis_Pasture_Sugarcane_model <- glmmTMB(Gosner.Stage ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=data_table_centralis, family=gaussian(link = "identity"))
+stage_centralis_Pasture_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Pasture_Cerrado + (1|Aquarium), data=data_table_centralis, family=gaussian(link = "identity"))
+stage_centralis_Sugarcane_Cerrado_model <- glmmTMB(Gosner.Stage~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=data_table_centralis, family=gaussian(link = "identity"))
+
+
+AICTAB_stage_centralis <- AICctab(stage_centralis_no_effect, stage_centralis_land, stage_centralis_Pasture_Sugarcane_model,stage_centralis_Pasture_Cerrado_model,stage_centralis_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                       mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_stage_centralis 
+
+
+##############################################################
+################################################################
+#################################################################
+                            #BCI
+##################################################################
+###################################################################
+
+bci_table <- data_table[-which(is.na(data_table$Gosner.Stage)), 
+                        c("Tadpole.Mass","Gosner.Stage","Leaf.Litter.Treatment","Species", "Aquarium")]
+bci_table$Treatment <- factor(bci_table$Leaf.Litter.Treatment, levels = c("Cerrado","Pasture","Sugarcane"))
+bci_table$Aquarium <- factor(bci_table$Aquarium)
+
+
+quadratic <- lm(log(bci_table$Tadpole.Mass) ~ bci_table$Gosner.Stage + 
+                  I(bci_table$Gosner.Stage^2))
+bci_table$BCI <- residuals(quadratic)
+
+Treatment_Pasture_Sugarcane <- rep(NA, nrow(bci_table))
+for(i in 1:nrow(bci_table)){
+  if(bci_table$Treatment[i] == "Pasture" | bci_table$Treatment[i] == "Sugarcane"){
+    Treatment_Pasture_Sugarcane[i] <- "Pasture-Sugarcane"
+  }else{Treatment_Pasture_Sugarcane[i] <- as.character(bci_table$Treatment[i])}
+}
+Treatment_Pasture_Sugarcane
+
+Treatment_Pasture_Cerrado <- rep(NA, nrow(bci_table))
+for(i in 1:nrow(bci_table)){
+  if(bci_table$Treatment[i] == "Pasture" | bci_table$Treatment[i] == "Cerrado"){
+    Treatment_Pasture_Cerrado[i] <- "Pasture-Cerrado"
+  }else{Treatment_Pasture_Cerrado[i] <- as.character(bci_table$Treatment[i])}
+}
+Treatment_Pasture_Cerrado
+
+Treatment_Sugarcane_Cerrado <- rep(NA, nrow(bci_table))
+for(i in 1:nrow(bci_table)){
+  if(bci_table$Treatment[i] == "Sugarcane" | bci_table$Treatment[i] == "Cerrado"){
+    Treatment_Sugarcane_Cerrado[i] <- "Sugarcane-Cerrado"
+  }else{Treatment_Sugarcane_Cerrado[i] <- as.character(bci_table$Treatment[i])}
+}
+
+
+bci_table <- data.frame(bci_table, Treatment_Pasture_Sugarcane, Treatment_Pasture_Cerrado,Treatment_Sugarcane_Cerrado)
+
+
+####
+
+
+bci_table_nattereri <- bci_table[which(bci_table$Species == "P. nattereri"),]
+bci_table_scinax <- bci_table[which(bci_table$Species == "S. fuscovarius"),]
+bci_table_cuvieri <- bci_table[which(bci_table$Species == "P. cuvieri"),]
+bci_table_centralis <- bci_table[which(bci_table$Species == "P. centralis"),]
+
+bci_table <- rbind(bci_table_centralis ,bci_table_cuvieri, bci_table_nattereri, bci_table_scinax)
+
+bci_table
+
+### S. fuscovarius
+
+
+bci_scinax_no_effect <- glmmTMB(BCI~ 1 + (1|Aquarium), data=bci_table_scinax, family=gaussian(link = "identity"))
+bci_scinax_land <- glmmTMB(BCI~ Treatment + (1|Aquarium), data=bci_table_scinax, family=gaussian(link = "identity"))
+bci_scinax_Pasture_Sugarcane_model <- glmmTMB(BCI ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=bci_table_scinax, family=gaussian(link = "identity"))
+bci_scinax_Pasture_Cerrado_model <- glmmTMB(BCI~ Treatment_Pasture_Cerrado + (1|Aquarium), data=bci_table_scinax, family=gaussian(link = "identity"))
+bci_scinax_Sugarcane_Cerrado_model <- glmmTMB(BCI~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=bci_table_scinax, family=gaussian(link = "identity"))
+
+
+AICTAB_bci_scinax <- AICctab(bci_scinax_no_effect, bci_scinax_land, bci_scinax_Pasture_Sugarcane_model,bci_scinax_Pasture_Cerrado_model,bci_scinax_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                               mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_bci_scinax
+
+### P. cuvieri
+
+bci_cuvieri_no_effect <- glmmTMB(BCI~ 1 + (1|Aquarium), data=bci_table_cuvieri, family=gaussian(link = "identity"))
+bci_cuvieri_land <- glmmTMB(BCI~ Treatment + (1|Aquarium), data=bci_table_cuvieri, family=gaussian(link = "identity"))
+bci_cuvieri_Pasture_Sugarcane_model <- glmmTMB(BCI ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=bci_table_cuvieri, family=gaussian(link = "identity"))
+bci_cuvieri_Pasture_Cerrado_model <- glmmTMB(BCI~ Treatment_Pasture_Cerrado + (1|Aquarium), data=bci_table_cuvieri, family=gaussian(link = "identity"))
+bci_cuvieri_Sugarcane_Cerrado_model <- glmmTMB(BCI~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=bci_table_cuvieri, family=gaussian(link = "identity"))
+
+
+AICTAB_bci_cuvieri <- AICctab(bci_cuvieri_no_effect, bci_cuvieri_land, bci_cuvieri_Pasture_Sugarcane_model,bci_cuvieri_Pasture_Cerrado_model,bci_cuvieri_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_bci_cuvieri
+
+### P. nattereri
+
+bci_nattereri_no_effect <- glmmTMB(BCI~ 1 + (1|Aquarium), data=bci_table_nattereri, family=gaussian(link = "identity"))
+bci_nattereri_land <- glmmTMB(BCI~ Treatment + (1|Aquarium), data=bci_table_nattereri, family=gaussian(link = "identity"))
+bci_nattereri_Pasture_Sugarcane_model <- glmmTMB(BCI ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=bci_table_nattereri, family=gaussian(link = "identity"))
+bci_nattereri_Pasture_Cerrado_model <- glmmTMB(BCI~ Treatment_Pasture_Cerrado + (1|Aquarium), data=bci_table_nattereri, family=gaussian(link = "identity"))
+bci_nattereri_Sugarcane_Cerrado_model <- glmmTMB(BCI~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=bci_table_nattereri, family=gaussian(link = "identity"))
+
+
+AICTAB_bci_nattereri <- AICctab(bci_nattereri_no_effect, bci_nattereri_land, bci_nattereri_Pasture_Sugarcane_model,bci_nattereri_Pasture_Cerrado_model,bci_nattereri_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                  mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_bci_nattereri
+
+### P. centralis
+
+bci_centralis_no_effect <- glmmTMB(BCI~ 1 + (1|Aquarium), data=bci_table_centralis, family=gaussian(link = "identity"))
+bci_centralis_land <- glmmTMB(BCI~ Treatment + (1|Aquarium), data=bci_table_centralis, family=gaussian(link = "identity"))
+bci_centralis_Pasture_Sugarcane_model <- glmmTMB(BCI ~ Treatment_Pasture_Sugarcane + (1|Aquarium), data=bci_table_centralis, family=gaussian(link = "identity"))
+bci_centralis_Pasture_Cerrado_model <- glmmTMB(BCI~ Treatment_Pasture_Cerrado + (1|Aquarium), data=bci_table_centralis, family=gaussian(link = "identity"))
+bci_centralis_Sugarcane_Cerrado_model <- glmmTMB(BCI~ Treatment_Sugarcane_Cerrado + (1|Aquarium), data=bci_table_centralis, family=gaussian(link = "identity"))
+
+
+AICTAB_bci_centralis <- AICctab(bci_centralis_no_effect, bci_centralis_land, bci_centralis_Pasture_Sugarcane_model,bci_centralis_Pasture_Cerrado_model,bci_centralis_Sugarcane_Cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                                  mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_bci_centralis 
+
+
+
+## Nao encontrei meu script da analise de mortalidade 
+

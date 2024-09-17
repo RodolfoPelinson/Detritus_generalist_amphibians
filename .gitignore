@@ -4,3 +4,6 @@
 .httr-oauth
 .DS_Store
 .quarto
+.look_before_close
+\data_original
+\scripts_original

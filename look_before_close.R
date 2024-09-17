@@ -20,11 +20,15 @@ library(devtools)
 #install.packages("Rcpp")
 #devtools::install_github("JenniNiku/gllvm")
 install.packages("vegan")
-install.packages("glmmTMB")
+install.packages("glmmTMB", type = "source")
 install.packages("emmeans")
 install.packages("car")
 install.packages("DHARMa")
 install.packages("bbmle")
+install.packages("TMB")
+install.packages("Matrix")
+
+
 
 #install.packages("spaa")
 #install.packages("doParallel")

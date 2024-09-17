@@ -55,7 +55,7 @@ P_nattereri <- condicao[which(condicao$especie == "P_nattereri"),]
 L_fuscus <- condicao[which(condicao$especie == "L_fuscus"),]
 ```
 
-This is to add variables combaning land uses to the dataframe. Here "pastagem" means pastures and "canavial" means sugarcane.
+This is to add variables combining land uses to the dataframe. Here "pastagem" means pastures and "canavial" means sugarcane.
 
 ```{r, FALSE}
 land_use_pastagem_cana <- rep(NA, nrow(biomass))

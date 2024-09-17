@@ -1,0 +1,27 @@
+ID,land_use,Rhinella schneideri,Dendropsophus minutus,Dendropsophus nanus,Hypsiboas faber,Hypsiboas albopunctatus,Hypsiboas lundii,Hypsiboas raniceps,Scinax,Trachycephalus venulosus,Eupemphix nattereri,Physalaemus centralis,Physalaemus cuvieri,Phyllomedusa hypochondrialis,Leptodactylus fuscus,Leptodactylus labyrinthicus,Leptodactylus mystacinus,Leptodactylus mystaceus,Leptodactylus podicipinus,Odontophrynus cultripes,Dermatonotus muelleri,Elachistocleis cesari,Chiasmocleis albopunctata,Pseudis platensis
+JT01,cerrado,1,1,1,1,1,1,0,1,0,0,0,1,0,0,1,0,1,1,1,0,1,0,0
+JT02,cerrado,0,1,1,1,0,0,0,1,1,1,1,1,0,1,1,0,1,0,0,1,1,1,0
+JT04,cerrado,1,0,1,1,1,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0
+JT06,cerrado,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+JT08,cerrado,0,1,0,0,1,0,0,1,0,1,0,1,0,1,1,0,0,1,0,0,0,0,0
+JT09,cerrado,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,1,1,0
+JT10,cerrado,0,1,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,1,0,0,1,1,0
+JT14,cerrado,0,1,1,0,0,0,0,1,1,0,0,1,0,1,1,1,1,0,0,1,1,1,0
+JT16,cerrado,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0
+AMP03,pastagem,0,1,0,0,0,0,1,1,0,1,0,1,0,1,0,0,0,0,0,1,1,0,0
+AMP06,pastagem,1,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0
+AMP09,pastagem,1,1,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,0,1,0,0
+AMP16,pastagem,1,0,1,0,1,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0
+AMP17,pastagem,1,1,1,0,0,0,0,1,0,1,0,1,0,1,1,0,0,1,0,0,1,0,0
+AMP21,pastagem,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+AMC02  ,canavial,0,1,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0
+CC07,canavial,0,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,0,0,1,0,0
+CC08,canavial,0,1,1,1,0,0,0,1,0,0,0,1,1,1,0,0,0,1,0,0,1,0,1
+CC09,canavial,0,1,1,1,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,1
+CC22,canavial,0,0,0,0,0,0,0,1,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0
+CC23,canavial,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0
+CC28,canavial,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0
+CC34,canavial,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0
+CC38,canavial,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0
+CC39,canavial,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,1,0,0
+CC43,canavial,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0

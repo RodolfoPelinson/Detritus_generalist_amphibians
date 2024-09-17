@@ -1,0 +1,1170 @@
+---
+title: "GLMM_observational"
+author: "Rodolfo Pelinson"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Occurrence, density, biomass and individual performance analysis of generalist amphibians.
+
+```{r,  warning=FALSE, message=FALSE}
+library(glmmTMB)
+library(bbmle)
+library(DHARMa)
+```
+
+```{r, warning=FALSE, message=FALSE}
+path <- c("C:/Users/rodol/OneDrive/repos/Detritus_generalist_amphibians/")
+
+biomass <- read.csv(paste(path,"data/biomass.csv", sep = ""))
+biomass <- biomass[which(biomass$amostrado == "sim"),]
+biomass$land_use <- factor(biomass$land_use, levels = c("cerrado","pastagem","canavial"))
+
+
+density <- read.csv(paste(path,"data/density.csv", sep = ""))
+density <- density[which(density$amostrado == "sim"),]
+density$land_use <- factor(density$land_use, levels = c("cerrado","pastagem","canavial"))
+
+
+
+occurrence <- read.csv(paste(path,"data/occurrence.csv", sep = ""))
+occurrence$land_use <- factor(occurrence$land_use, levels = c("cerrado","pastagem","canavial"))
+
+oc_cerrado <- occurrence[which(occurrence$land_use == "cerrado"),3:8]
+oc_pastagem <- occurrence[which(occurrence$land_use == "pastagem"),3:8]
+oc_canavial <- occurrence[which(occurrence$land_use == "canavial"),3:8]
+
+freq_cerrado <- apply(oc_cerrado, 2, mean)
+freq_pastagem <- apply(oc_pastagem, 2, mean)
+freq_canavial <- apply(oc_canavial, 2, mean)
+
+freq <- data.frame(rbind(freq_cerrado,freq_pastagem,freq_canavial))
+freq <- freq*100
+
+
+condicao <- read.csv(paste(path,"data/condicao_corporea.csv", sep = ""), header = T)
+condicao <- na.omit(condicao[which(condicao$cauda_danificada == "nao"),])
+condicao$estagio <- as.numeric(condicao$estagio)
+
+condicao$uso_da_terra <- factor(condicao$uso_da_terra, levels = c("cerrado","pasto","cana"))
+
+D_nanus <- condicao[which(condicao$especie == "D_nanus"),]
+D_minutus <- condicao[which(condicao$especie == "D_minutus"),]
+P_cuvieri <- condicao[which(condicao$especie == "P_cuvieri"),]
+P_nattereri <- condicao[which(condicao$especie == "P_nattereri"),]
+L_fuscus <- condicao[which(condicao$especie == "L_fuscus"),]
+```
+
+This is to add variables combaning land uses to the dataframe. Here "pastagem" means pastures and "canavial" means sugarcane.
+
+```{r, FALSE}
+land_use_pastagem_cana <- rep(NA, nrow(biomass))
+for(i in 1:nrow(biomass)){
+  if(biomass$land_use[i] == "pastagem" | biomass$land_use[i] == "canavial"){
+    land_use_pastagem_cana[i] <- "pastagem-canavial"
+  }else{land_use_pastagem_cana[i] <- as.character(biomass$land_use[i])}
+}
+
+land_use_pastagem_cerrado <- rep(NA, nrow(biomass))
+for(i in 1:nrow(biomass)){
+  if(biomass$land_use[i] == "pastagem" | biomass$land_use[i] == "cerrado"){
+    land_use_pastagem_cerrado[i] <- "pastagem-cerrado"
+  }else{land_use_pastagem_cerrado[i] <- as.character(biomass$land_use[i])}
+}
+
+land_use_canavial_cerrado <- rep(NA, nrow(biomass))
+for(i in 1:nrow(biomass)){
+  if(biomass$land_use[i] == "canavial" | biomass$land_use[i] == "cerrado"){
+    land_use_canavial_cerrado[i] <- "canavial-cerrado"
+  }else{land_use_canavial_cerrado[i] <- as.character(biomass$land_use[i])}
+}
+
+biomass <- data.frame(biomass, land_use_pastagem_cana, land_use_pastagem_cerrado,land_use_canavial_cerrado)
+density <- data.frame(density, land_use_pastagem_cana, land_use_pastagem_cerrado,land_use_canavial_cerrado)
+
+
+
+
+
+
+```
+
+## Biomass
+
+#### D. nanus
+
+```{r}
+D_nanus_no_effect <- glmmTMB(D_nanus~ 1 + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_nanus_land <- glmmTMB(D_nanus~ land_use + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_nanus <- AICctab(D_nanus_no_effect, D_nanus_land, D_nanus_pastagem_cana_model,D_nanus_pastagem_cerrado_model,D_nanus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_nanus
+```
+
+```{r}
+simulationResiduals_D_nanus <- simulateResiduals(fittedModel = D_nanus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_nanus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_nanus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(D_nanus ~ land_use,  data = biomass, xaxt = "n",yaxt = "n", ylab = expression(paste("Biomass (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### Scinax
+
+```{r}
+Scinax_no_effect <- glmmTMB(Scinax~ 1 + (1|ID), data=biomass, family=tweedie(link = "log"))
+Scinax_land <- glmmTMB(Scinax~ land_use + (1|ID), data=biomass, family=tweedie(link = "log"))
+Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana + (1|ID), data=biomass, family=tweedie(link = "log"))
+Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_Scinax <- AICctab(Scinax_no_effect, Scinax_land, Scinax_pastagem_cana_model,Scinax_pastagem_cerrado_model,Scinax_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_Scinax
+```
+
+```{r}
+simulationResiduals_Scinax <- simulateResiduals(fittedModel = Scinax_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_Scinax, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_Scinax,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(Scinax ~ land_use,  data = biomass, xaxt = "n",yaxt = "n", ylab = expression(paste("Biomass (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### L. fuscus
+
+```{r}
+L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 + (1|ID), data=biomass, family=tweedie(link = "log"))
+L_fuscus_land <- glmmTMB(L_fuscus~ land_use + (1|ID), data=biomass, family=tweedie(link = "log"))
+L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana + (1|ID), data=biomass, family=tweedie(link = "log"))
+L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_cana_model,L_fuscus_pastagem_cerrado_model,L_fuscus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_L_fuscus
+```
+
+```{r}
+simulationResiduals_L_fuscus <- simulateResiduals(fittedModel = L_fuscus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_L_fuscus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_L_fuscus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(L_fuscus ~ land_use,  data = biomass, xaxt = "n",yaxt = "n", ylab = expression(paste("Biomass (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### P. cuvieri
+
+```{r}
+P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_cuvieri <- AICctab(P_cuvieri_no_effect, P_cuvieri_land, P_cuvieri_pastagem_cana_model,P_cuvieri_pastagem_cerrado_model,P_cuvieri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_cuvieri
+```
+
+```{r}
+simulationResiduals_P_cuvieri <- simulateResiduals(fittedModel = P_cuvieri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_cuvieri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_cuvieri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(P_cuvieri ~ land_use,  data = biomass, xaxt = "n",yaxt = "n", ylab = expression(paste("Biomass (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### P. nattereri
+
+```{r}
+P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_nattereri_land <- glmmTMB(P_nattereri~ land_use + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_nattereri <- AICctab(P_nattereri_no_effect, P_nattereri_land, P_nattereri_pastagem_cana_model,P_nattereri_pastagem_cerrado_model,P_nattereri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_nattereri
+```
+
+```{r}
+simulationResiduals_P_nattereri <- simulateResiduals(fittedModel = P_nattereri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_nattereri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_nattereri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(P_nattereri ~ land_use,  data = biomass, xaxt = "n",yaxt = "n", ylab = expression(paste("Biomass (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### D. minutus
+
+```{r}
+D_minutus_no_effect <- glmmTMB(D_minutus~ 1 + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_minutus_land <- glmmTMB(D_minutus~ land_use + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado + (1|ID), data=biomass, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_minutus <- AICctab(D_minutus_no_effect, D_minutus_land, D_minutus_pastagem_cana_model,D_minutus_pastagem_cerrado_model,D_minutus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_minutus
+```
+
+```{r}
+simulationResiduals_D_minutus <- simulateResiduals(fittedModel = D_minutus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_minutus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_minutus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(D_minutus ~ land_use,  data = biomass, xaxt = "n",yaxt = "n", ylab = expression(paste("Biomass (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+/ / / /
+
+## Density
+
+#### D. nanus
+
+```{r}
+D_nanus_no_effect <- glmmTMB(D_nanus~ 1 + (1|ID), data=density, family=tweedie(link = "log"))
+D_nanus_land <- glmmTMB(D_nanus~ land_use + (1|ID), data=density, family=tweedie(link = "log"))
+D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana + (1|ID), data=density, family=tweedie(link = "log"))
+D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_nanus <- AICctab(D_nanus_no_effect, D_nanus_land, D_nanus_pastagem_cana_model,D_nanus_pastagem_cerrado_model,D_nanus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_nanus
+```
+
+```{r}
+simulationResiduals_D_nanus <- simulateResiduals(fittedModel = D_nanus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_nanus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_nanus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(D_nanus ~ land_use,  data = density, xaxt = "n",yaxt = "n", ylab = expression(paste("density (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### Scinax
+
+```{r}
+Scinax_no_effect <- glmmTMB(Scinax~ 1 + (1|ID), data=density, family=tweedie(link = "log"))
+Scinax_land <- glmmTMB(Scinax~ land_use + (1|ID), data=density, family=tweedie(link = "log"))
+Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana + (1|ID), data=density, family=tweedie(link = "log"))
+Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_Scinax <- AICctab(Scinax_no_effect, Scinax_land, Scinax_pastagem_cana_model,Scinax_pastagem_cerrado_model,Scinax_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_Scinax
+```
+
+```{r}
+simulationResiduals_Scinax <- simulateResiduals(fittedModel = Scinax_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_Scinax, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_Scinax,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(Scinax ~ land_use,  data = density, xaxt = "n",yaxt = "n", ylab = expression(paste("density (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### L. fuscus
+
+```{r}
+L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 + (1|ID), data=density, family=tweedie(link = "log"))
+L_fuscus_land <- glmmTMB(L_fuscus~ land_use + (1|ID), data=density, family=tweedie(link = "log"))
+L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana + (1|ID), data=density, family=tweedie(link = "log"))
+L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_cana_model,L_fuscus_pastagem_cerrado_model,L_fuscus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_L_fuscus
+```
+
+```{r}
+simulationResiduals_L_fuscus <- simulateResiduals(fittedModel = L_fuscus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_L_fuscus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_L_fuscus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(L_fuscus ~ land_use,  data = density, xaxt = "n",yaxt = "n", ylab = expression(paste("density (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### P. cuvieri
+
+```{r}
+P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 + (1|ID), data=density, family=tweedie(link = "log"))
+P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use + (1|ID), data=density, family=tweedie(link = "log"))
+P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana + (1|ID), data=density, family=tweedie(link = "log"))
+P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_cuvieri <- AICctab(P_cuvieri_no_effect, P_cuvieri_land, P_cuvieri_pastagem_cana_model,P_cuvieri_pastagem_cerrado_model,P_cuvieri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_cuvieri
+```
+
+```{r}
+simulationResiduals_P_cuvieri <- simulateResiduals(fittedModel = P_cuvieri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_cuvieri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_cuvieri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(P_cuvieri ~ land_use,  data = density, xaxt = "n",yaxt = "n", ylab = expression(paste("density (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### P. nattereri
+
+```{r}
+P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 + (1|ID), data=density, family=tweedie(link = "log"))
+P_nattereri_land <- glmmTMB(P_nattereri~ land_use + (1|ID), data=density, family=tweedie(link = "log"))
+P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana + (1|ID), data=density, family=tweedie(link = "log"))
+P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_nattereri <- AICctab(P_nattereri_no_effect, P_nattereri_land, P_nattereri_pastagem_cana_model,P_nattereri_pastagem_cerrado_model,P_nattereri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_nattereri
+```
+
+```{r}
+simulationResiduals_P_nattereri <- simulateResiduals(fittedModel = P_nattereri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_nattereri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_nattereri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(P_nattereri ~ land_use,  data = density, xaxt = "n",yaxt = "n", ylab = expression(paste("density (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+------------------------------------------------------------------------
+
+#### D. minutus
+
+```{r}
+D_minutus_no_effect <- glmmTMB(D_minutus~ 1 + (1|ID), data=density, family=tweedie(link = "log"))
+D_minutus_land <- glmmTMB(D_minutus~ land_use + (1|ID), data=density, family=tweedie(link = "log"))
+D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana + (1|ID), data=density, family=tweedie(link = "log"))
+D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado + (1|ID), data=density, family=tweedie(link = "log"))
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_minutus <- AICctab(D_minutus_no_effect, D_minutus_land, D_minutus_pastagem_cana_model,D_minutus_pastagem_cerrado_model,D_minutus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_minutus
+```
+
+```{r}
+simulationResiduals_D_minutus <- simulateResiduals(fittedModel = D_minutus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_minutus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_minutus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+boxplot(D_minutus ~ land_use,  data = density, xaxt = "n",yaxt = "n", ylab = expression(paste("density (g ", m^-2,")"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ygap.axis = 1, pch = 16)
+axis(2, las = 2, cex.axis = 1.5)
+
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
+
+/ / / /
+
+## Occurrence
+
+#### D. nanus
+
+```{r}
+
+
+land_use_pastagem_cana <- rep(NA, nrow(occurrence))
+for(i in 1:nrow(occurrence)){
+  if(occurrence$land_use[i] == "pastagem" | occurrence$land_use[i] == "canavial"){
+    land_use_pastagem_cana[i] <- "pastagem-canavial"
+  }else{land_use_pastagem_cana[i] <- as.character(occurrence$land_use[i])}
+}
+land_use_pastagem_cana
+
+land_use_pastagem_cerrado <- rep(NA, nrow(occurrence))
+for(i in 1:nrow(occurrence)){
+  if(occurrence$land_use[i] == "pastagem" | occurrence$land_use[i] == "cerrado"){
+    land_use_pastagem_cerrado[i] <- "pastagem-cerrado"
+  }else{land_use_pastagem_cerrado[i] <- as.character(occurrence$land_use[i])}
+}
+land_use_pastagem_cerrado
+
+land_use_canavial_cerrado <- rep(NA, nrow(occurrence))
+for(i in 1:nrow(occurrence)){
+  if(occurrence$land_use[i] == "canavial" | occurrence$land_use[i] == "cerrado"){
+    land_use_canavial_cerrado[i] <- "canavial-cerrado"
+  }else{land_use_canavial_cerrado[i] <- as.character(occurrence$land_use[i])}
+}
+land_use_canavial_cerrado
+
+occurrence <- data.frame(occurrence, land_use_pastagem_cana, land_use_pastagem_cerrado,land_use_canavial_cerrado)
+
+
+
+```
+
+
+```{r}
+D_nanus_no_effect <- glmmTMB(D_nanus~ 1 + (1|ID), data=occurrence, family="binomial")
+D_nanus_land <- glmmTMB(D_nanus~ land_use + (1|ID), data=occurrence, family="binomial")
+D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_nanus <- AICctab(D_nanus_no_effect, D_nanus_land, D_nanus_pastagem_cana_model,D_nanus_pastagem_cerrado_model,D_nanus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_nanus
+```
+
+```{r}
+simulationResiduals_D_nanus <- simulateResiduals(fittedModel = D_nanus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_nanus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_nanus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$D_nanus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### Scinax
+
+```{r}
+Scinax_no_effect <- glmmTMB(Scinax~ 1 + (1|ID), data=occurrence, family="binomial")
+Scinax_land <- glmmTMB(Scinax~ land_use + (1|ID), data=occurrence, family="binomial")
+Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_Scinax <- AICctab(Scinax_no_effect, Scinax_land, Scinax_pastagem_cana_model,Scinax_pastagem_cerrado_model,Scinax_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_Scinax
+```
+
+```{r}
+simulationResiduals_Scinax <- simulateResiduals(fittedModel = Scinax_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_Scinax, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_Scinax,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$Scinax, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### L. fuscus
+
+```{r}
+L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 + (1|ID), data=occurrence, family="binomial")
+L_fuscus_land <- glmmTMB(L_fuscus~ land_use + (1|ID), data=occurrence, family="binomial")
+L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_cana_model,L_fuscus_pastagem_cerrado_model,L_fuscus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_L_fuscus
+```
+
+```{r}
+simulationResiduals_L_fuscus <- simulateResiduals(fittedModel = L_fuscus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_L_fuscus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_L_fuscus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$L_fuscus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.5+0.3,(0.3*2)+1+0.5,(0.3*3)+2+0.5), y = c(105,105,105), labels = c("a", "a", "b"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### P. cuvieri
+
+```{r}
+P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_cuvieri <- AICctab(P_cuvieri_no_effect, P_cuvieri_land, P_cuvieri_pastagem_cana_model,P_cuvieri_pastagem_cerrado_model,P_cuvieri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_cuvieri
+```
+
+```{r}
+simulationResiduals_P_cuvieri <- simulateResiduals(fittedModel = P_cuvieri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_cuvieri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_cuvieri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+barplot(freq$P_cuvieri, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### P. nattereri
+
+```{r}
+P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 + (1|ID), data=occurrence, family="binomial")
+P_nattereri_land <- glmmTMB(P_nattereri~ land_use + (1|ID), data=occurrence, family="binomial")
+P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_nattereri <- AICctab(P_nattereri_no_effect, P_nattereri_land, P_nattereri_pastagem_cana_model,P_nattereri_pastagem_cerrado_model,P_nattereri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_nattereri
+```
+
+```{r}
+simulationResiduals_P_nattereri <- simulateResiduals(fittedModel = P_nattereri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_nattereri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_nattereri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$P_nattereri, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### D. minutus
+
+```{r}
+D_minutus_no_effect <- glmmTMB(D_minutus~ 1 + (1|ID), data=occurrence, family="binomial")
+D_minutus_land <- glmmTMB(D_minutus~ land_use + (1|ID), data=occurrence, family="binomial")
+D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_minutus <- AICctab(D_minutus_no_effect, D_minutus_land, D_minutus_pastagem_cana_model,D_minutus_pastagem_cerrado_model,D_minutus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_minutus
+```
+
+```{r}
+simulationResiduals_D_minutus <- simulateResiduals(fittedModel = D_minutus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_minutus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_minutus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$D_minutus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.5+0.3,(0.3*2)+1+0.5,(0.3*3)+2+0.5), y = c(105,105,105), labels = c("a", "a", "b"), cex = 1.5)
+box()
+```
+
+/ / / /
+
+## BCI
+
+```{r}
+
+uso_da_terra_pasto_cana <- rep(NA, nrow(condicao))
+for(i in 1:nrow(condicao)){
+        if(condicao$uso_da_terra[i] == "pasto" | condicao$uso_da_terra[i] == "cana"){
+                uso_da_terra_pasto_cana[i] <- "pasto-cana"
+        }else{uso_da_terra_pasto_cana[i] <- as.character(condicao$uso_da_terra[i])}
+}
+uso_da_terra_pasto_cana
+
+uso_da_terra_pasto_cerrado <- rep(NA, nrow(condicao))
+for(i in 1:nrow(condicao)){
+        if(condicao$uso_da_terra[i] == "pasto" | condicao$uso_da_terra[i] == "cerrado"){
+                uso_da_terra_pasto_cerrado[i] <- "pasto-cerrado"
+        }else{uso_da_terra_pasto_cerrado[i] <- as.character(condicao$uso_da_terra[i])}
+}
+uso_da_terra_pasto_cerrado
+
+uso_da_terra_cana_cerrado <- rep(NA, nrow(condicao))
+for(i in 1:nrow(condicao)){
+        if(condicao$uso_da_terra[i] == "cana" | condicao$uso_da_terra[i] == "cerrado"){
+                uso_da_terra_cana_cerrado[i] <- "cana-cerrado"
+        }else{uso_da_terra_cana_cerrado[i] <- as.character(condicao$uso_da_terra[i])}
+}
+uso_da_terra_cana_cerrado
+
+condicao <- data.frame(condicao, uso_da_terra_pasto_cana, uso_da_terra_pasto_cerrado,uso_da_terra_cana_cerrado)
+```
+
+
+#### D. nanus
+
+```{r}
+D_nanus_no_effect <- glmmTMB(D_nanus~ 1 + (1|ID), data=occurrence, family="binomial")
+D_nanus_land <- glmmTMB(D_nanus~ land_use + (1|ID), data=occurrence, family="binomial")
+D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_nanus <- AICctab(D_nanus_no_effect, D_nanus_land, D_nanus_pastagem_cana_model,D_nanus_pastagem_cerrado_model,D_nanus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_nanus
+```
+
+```{r}
+simulationResiduals_D_nanus <- simulateResiduals(fittedModel = D_nanus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_nanus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_nanus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$D_nanus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### Scinax
+
+```{r}
+Scinax_no_effect <- glmmTMB(Scinax~ 1 + (1|ID), data=occurrence, family="binomial")
+Scinax_land <- glmmTMB(Scinax~ land_use + (1|ID), data=occurrence, family="binomial")
+Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_Scinax <- AICctab(Scinax_no_effect, Scinax_land, Scinax_pastagem_cana_model,Scinax_pastagem_cerrado_model,Scinax_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_Scinax
+```
+
+```{r}
+simulationResiduals_Scinax <- simulateResiduals(fittedModel = Scinax_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_Scinax, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_Scinax,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$Scinax, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### L. fuscus
+
+```{r}
+L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 + (1|ID), data=occurrence, family="binomial")
+L_fuscus_land <- glmmTMB(L_fuscus~ land_use + (1|ID), data=occurrence, family="binomial")
+L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_cana_model,L_fuscus_pastagem_cerrado_model,L_fuscus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_L_fuscus
+```
+
+```{r}
+simulationResiduals_L_fuscus <- simulateResiduals(fittedModel = L_fuscus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_L_fuscus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_L_fuscus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$L_fuscus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.5+0.3,(0.3*2)+1+0.5,(0.3*3)+2+0.5), y = c(105,105,105), labels = c("a", "a", "b"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### P. cuvieri
+
+```{r}
+P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_cuvieri <- AICctab(P_cuvieri_no_effect, P_cuvieri_land, P_cuvieri_pastagem_cana_model,P_cuvieri_pastagem_cerrado_model,P_cuvieri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_cuvieri
+```
+
+```{r}
+simulationResiduals_P_cuvieri <- simulateResiduals(fittedModel = P_cuvieri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_cuvieri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_cuvieri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+barplot(freq$P_cuvieri, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### P. nattereri
+
+```{r}
+P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 + (1|ID), data=occurrence, family="binomial")
+P_nattereri_land <- glmmTMB(P_nattereri~ land_use + (1|ID), data=occurrence, family="binomial")
+P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_P_nattereri <- AICctab(P_nattereri_no_effect, P_nattereri_land, P_nattereri_pastagem_cana_model,P_nattereri_pastagem_cerrado_model,P_nattereri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_P_nattereri
+```
+
+```{r}
+simulationResiduals_P_nattereri <- simulateResiduals(fittedModel = P_nattereri_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_P_nattereri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_P_nattereri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(12, 05, 1, 1))
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$P_nattereri, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+box()
+```
+
+------------------------------------------------------------------------
+
+#### D. minutus
+
+```{r}
+D_minutus_no_effect <- glmmTMB(D_minutus~ 1 + (1|ID), data=occurrence, family="binomial")
+D_minutus_land <- glmmTMB(D_minutus~ land_use + (1|ID), data=occurrence, family="binomial")
+D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
+D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
+D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+```
+
+Model Selection
+
+```{r}
+AICTAB_D_minutus <- AICctab(D_minutus_no_effect, D_minutus_land, D_minutus_pastagem_cana_model,D_minutus_pastagem_cerrado_model,D_minutus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
+                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
+AICTAB_D_minutus
+```
+
+```{r}
+simulationResiduals_D_minutus <- simulateResiduals(fittedModel = D_minutus_land, plot = F, seed = 3, n = 1000)
+
+par(mar = c(6, 4, 3, 2))
+
+plotQQunif(simulationResiduals_D_minutus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_D_minutus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+```
+
+```{r}
+par(mar = c(9, 05, 1, 1))
+
+barplot(freq$D_minutus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
+        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+axis(2, las = 2, cex.axis = 1.5)
+axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
+axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
+#text(x = c(0.5+0.3,(0.3*2)+1+0.5,(0.3*3)+2+0.5), y = c(105,105,105), labels = c("a", "a", "b"), cex = 1.5)
+box()
+```

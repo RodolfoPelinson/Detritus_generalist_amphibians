@@ -14,6 +14,7 @@ renv::restore()
 #Packages
 install.packages("usethis")
 
+
 install.packages("devtools")
 library(devtools)
 #install.packages("Rcpp")
@@ -22,6 +23,9 @@ install.packages("vegan")
 install.packages("glmmTMB")
 install.packages("emmeans")
 install.packages("car")
+install.packages("DHARMa")
+install.packages("bbmle")
+
 #install.packages("spaa")
 #install.packages("doParallel")
 #install.packages("pbapply")
@@ -29,3 +33,4 @@ install.packages("car")
 
 usethis::use_git()
 usethis::use_github()
+usethis::use_readme_rmd()

@@ -45,15 +45,9 @@ condicao <- na.omit(condicao[which(condicao$cauda_danificada == "nao"),])
 condicao$estagio <- as.numeric(condicao$estagio)
 
 condicao$uso_da_terra <- factor(condicao$uso_da_terra, levels = c("cerrado","pasto","cana"))
-
-D_nanus <- condicao[which(condicao$especie == "D_nanus"),]
-D_minutus <- condicao[which(condicao$especie == "D_minutus"),]
-P_cuvieri <- condicao[which(condicao$especie == "P_cuvieri"),]
-P_nattereri <- condicao[which(condicao$especie == "P_nattereri"),]
-L_fuscus <- condicao[which(condicao$especie == "L_fuscus"),]
 ```
 
-This is to add variables combaning land uses to the dataframe. Here
+This is to add variables combining land uses to the dataframe. Here
 “pastagem” means pastures and “canavial” means sugarcane.
 
 ``` r
@@ -841,11 +835,11 @@ axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 #### D. nanus
 
 ``` r
-D_nanus_no_effect <- glmmTMB(D_nanus~ 1 + (1|ID), data=occurrence, family="binomial")
-D_nanus_land <- glmmTMB(D_nanus~ land_use + (1|ID), data=occurrence, family="binomial")
-D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+D_nanus_no_effect <- glmmTMB(D_nanus~ 1 , data=occurrence, family="binomial")
+D_nanus_land <- glmmTMB(D_nanus~ land_use , data=occurrence, family="binomial")
+D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana , data=occurrence, family="binomial")
+D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado , data=occurrence, family="binomial")
+D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado , data=occurrence, family="binomial")
 ```
 
 Model Selection
@@ -858,11 +852,11 @@ AICTAB_D_nanus
 ```
 
     ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.7   39.9   0.0     0.0 2  0.383 
-    ## Savanna # Pasture # Sugarcane -16.8   43.5   0.9     3.5 4  0.066 
-    ## Savanna # Pasture = Sugarcane -17.2   41.5   0.5     1.6 3  0.174 
-    ## Savanna = Pasture # Sugarcane -16.8   40.7   0.9     0.8 3  0.262 
-    ## Savanna = Sugarcane # Pasture -17.6   42.3   0.1     2.4 3  0.116
+    ## No Effect                     -17.7   37.6   0.0     0.0 1  0.355 
+    ## Savanna # Pasture # Sugarcane -16.8   40.7   0.9     3.1 3  0.076 
+    ## Savanna # Pasture = Sugarcane -17.2   39.0   0.5     1.4 2  0.179 
+    ## Savanna = Pasture # Sugarcane -16.8   38.1   0.9     0.5 2  0.270 
+    ## Savanna = Sugarcane # Pasture -17.6   39.8   0.1     2.2 2  0.120
 
 ``` r
 simulationResiduals_D_nanus <- simulateResiduals(fittedModel = D_nanus_land, plot = F, seed = 3, n = 1000)
@@ -899,11 +893,11 @@ box()
 #### Scinax
 
 ``` r
-Scinax_no_effect <- glmmTMB(Scinax~ 1 + (1|ID), data=occurrence, family="binomial")
-Scinax_land <- glmmTMB(Scinax~ land_use + (1|ID), data=occurrence, family="binomial")
-Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+Scinax_no_effect <- glmmTMB(Scinax~ 1, data=occurrence, family="binomial")
+Scinax_land <- glmmTMB(Scinax~ land_use , data=occurrence, family="binomial")
+Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana, data=occurrence, family="binomial")
+Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado, data=occurrence, family="binomial")
+Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado, data=occurrence, family="binomial")
 ```
 
 Model Selection
@@ -916,11 +910,11 @@ AICTAB_Scinax
 ```
 
     ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.3   39.2   0.0     0.0 2  0.344 
-    ## Savanna # Pasture # Sugarcane -16.2   42.2   1.2     3.1 4  0.074 
-    ## Savanna # Pasture = Sugarcane -16.5   40.1   0.8     1.0 3  0.212 
-    ## Savanna = Pasture # Sugarcane -16.3   39.6   1.0     0.5 3  0.271 
-    ## Savanna = Sugarcane # Pasture -17.3   41.6   0.0     2.5 3  0.099
+    ## No Effect                     -17.3   36.8   0.0     0.0 1  0.317 
+    ## Savanna # Pasture # Sugarcane -16.2   39.4   1.2     2.6 3  0.086 
+    ## Savanna # Pasture = Sugarcane -16.5   37.6   0.8     0.8 2  0.218 
+    ## Savanna = Pasture # Sugarcane -16.3   37.1   1.0     0.3 2  0.278 
+    ## Savanna = Sugarcane # Pasture -17.3   39.1   0.0     2.3 2  0.102
 
 ``` r
 simulationResiduals_Scinax <- simulateResiduals(fittedModel = Scinax_land, plot = F, seed = 3, n = 1000)
@@ -957,11 +951,11 @@ box()
 #### L. fuscus
 
 ``` r
-L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 + (1|ID), data=occurrence, family="binomial")
-L_fuscus_land <- glmmTMB(L_fuscus~ land_use + (1|ID), data=occurrence, family="binomial")
-L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 , data=occurrence, family="binomial")
+L_fuscus_land <- glmmTMB(L_fuscus~ land_use , data=occurrence, family="binomial")
+L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana , data=occurrence, family="binomial")
+L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado , data=occurrence, family="binomial")
+L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado , data=occurrence, family="binomial")
 ```
 
 Model Selection
@@ -973,12 +967,12 @@ AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_
 AICTAB_L_fuscus
 ```
 
-    ##                               logLik AICc dLogLik dAICc df weight
-    ## No Effect                     -7.7   19.9  1.9     0.0  2  0.6155
-    ## Savanna # Pasture # Sugarcane -9.5   29.0  0.0     9.1  4  0.0065
-    ## Savanna # Pasture = Sugarcane -7.6   22.4  1.9     2.5  3  0.1774
-    ## Savanna = Pasture # Sugarcane -9.5   26.2  0.0     6.3  3  0.0265
-    ## Savanna = Sugarcane # Pasture -7.7   22.4  1.9     2.5  3  0.1742
+    ##                               logLik AICc  dLogLik dAICc df weight
+    ## No Effect                     -12.7   27.6   0.0     4.0 1  0.086 
+    ## Savanna # Pasture # Sugarcane  -9.5   26.2   3.2     2.6 3  0.176 
+    ## Savanna # Pasture = Sugarcane -11.9   28.3   0.8     4.7 2  0.061 
+    ## Savanna = Pasture # Sugarcane  -9.5   23.6   3.2     0.0 2  0.635 
+    ## Savanna = Sugarcane # Pasture -12.3   29.1   0.5     5.5 2  0.042
 
 ``` r
 simulationResiduals_L_fuscus <- simulateResiduals(fittedModel = L_fuscus_land, plot = F, seed = 3, n = 1000)
@@ -1015,11 +1009,11 @@ box()
 #### P. cuvieri
 
 ``` r
-P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 , data=occurrence, family="binomial")
+P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use , data=occurrence, family="binomial")
+P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana , data=occurrence, family="binomial")
+P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado , data=occurrence, family="binomial")
+P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado , data=occurrence, family="binomial")
 ```
 
 Model Selection
@@ -1032,11 +1026,11 @@ AICTAB_P_cuvieri
 ```
 
     ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -15.1   34.8   0.0     0.8 2  0.254 
-    ## Savanna # Pasture # Sugarcane -13.4   36.7   1.7     2.7 4  0.097 
-    ## Savanna # Pasture = Sugarcane -14.2   35.4   1.0     1.4 3  0.185 
-    ## Savanna = Pasture # Sugarcane -13.5   34.0   1.7     0.0 3  0.376 
-    ## Savanna = Sugarcane # Pasture -14.9   36.9   0.2     2.9 3  0.088
+    ## No Effect                     -15.1   32.5   0.0     1.0 1  0.232 
+    ## Savanna # Pasture # Sugarcane -13.4   33.9   1.7     2.5 3  0.111 
+    ## Savanna # Pasture = Sugarcane -14.2   32.9   1.0     1.4 2  0.188 
+    ## Savanna = Pasture # Sugarcane -13.5   31.5   1.7     0.0 2  0.381 
+    ## Savanna = Sugarcane # Pasture -14.9   34.4   0.2     2.9 2  0.089
 
 ``` r
 simulationResiduals_P_cuvieri <- simulateResiduals(fittedModel = P_cuvieri_land, plot = F, seed = 3, n = 1000)
@@ -1072,11 +1066,11 @@ box()
 #### P. nattereri
 
 ``` r
-P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 + (1|ID), data=occurrence, family="binomial")
-P_nattereri_land <- glmmTMB(P_nattereri~ land_use + (1|ID), data=occurrence, family="binomial")
-P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 , data=occurrence, family="binomial")
+P_nattereri_land <- glmmTMB(P_nattereri~ land_use , data=occurrence, family="binomial")
+P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana , data=occurrence, family="binomial")
+P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado , data=occurrence, family="binomial")
+P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado , data=occurrence, family="binomial")
 ```
 
 Model Selection
@@ -1089,11 +1083,11 @@ AICTAB_P_nattereri
 ```
 
     ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.9   40.4   0.0     0.8 2  0.25  
-    ## Savanna # Pasture # Sugarcane -16.1   42.2   1.8     2.5 4  0.10  
-    ## Savanna # Pasture = Sugarcane -16.3   39.7   1.7     0.0 3  0.36  
-    ## Savanna = Pasture # Sugarcane -16.8   40.6   1.2     0.9 3  0.22  
-    ## Savanna = Sugarcane # Pasture -17.9   42.9   0.0     3.3 3  0.07
+    ## No Effect                     -17.9   38.1   0.0     1.0 1  0.224 
+    ## Savanna # Pasture # Sugarcane -16.1   39.4   1.8     2.3 3  0.116 
+    ## Savanna # Pasture = Sugarcane -16.3   37.1   1.7     0.0 2  0.363 
+    ## Savanna = Pasture # Sugarcane -16.8   38.0   1.2     0.9 2  0.226 
+    ## Savanna = Sugarcane # Pasture -17.9   40.4   0.0     3.3 2  0.071
 
 ``` r
 simulationResiduals_P_nattereri <- simulateResiduals(fittedModel = P_nattereri_land, plot = F, seed = 3, n = 1000)
@@ -1131,11 +1125,11 @@ box()
 #### D. minutus
 
 ``` r
-D_minutus_no_effect <- glmmTMB(D_minutus~ 1 + (1|ID), data=occurrence, family="binomial")
-D_minutus_land <- glmmTMB(D_minutus~ land_use + (1|ID), data=occurrence, family="binomial")
-D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+D_minutus_no_effect <- glmmTMB(D_minutus~ 1 , data=occurrence, family="binomial")
+D_minutus_land <- glmmTMB(D_minutus~ land_use , data=occurrence, family="binomial")
+D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana , data=occurrence, family="binomial")
+D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado , data=occurrence, family="binomial")
+D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado , data=occurrence, family="binomial")
 ```
 
 Model Selection
@@ -1148,11 +1142,11 @@ AICTAB_D_minutus
 ```
 
     ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.9   40.4   0.0     0.0 2  0.46  
-    ## Savanna # Pasture # Sugarcane -17.5   44.8   0.5     4.4 4  0.05  
-    ## Savanna # Pasture = Sugarcane -17.5   42.1   0.5     1.6 3  0.20  
-    ## Savanna = Pasture # Sugarcane -17.7   42.4   0.3     2.0 3  0.17  
-    ## Savanna = Sugarcane # Pasture -17.9   42.9   0.0     2.5 3  0.13
+    ## No Effect                     -17.9   38.1   0.0     0.0 1  0.426 
+    ## Savanna # Pasture # Sugarcane -17.5   42.0   0.5     4.0 3  0.059 
+    ## Savanna # Pasture = Sugarcane -17.5   39.5   0.5     1.4 2  0.208 
+    ## Savanna = Pasture # Sugarcane -17.7   39.9   0.3     1.8 2  0.172 
+    ## Savanna = Sugarcane # Pasture -17.9   40.4   0.0     2.3 2  0.134
 
 ``` r
 simulationResiduals_D_minutus <- simulateResiduals(fittedModel = D_minutus_land, plot = F, seed = 3, n = 1000)
@@ -1191,28 +1185,32 @@ box()
 #### D. nanus
 
 ``` r
-D_nanus_no_effect <- glmmTMB(D_nanus~ 1 + (1|ID), data=occurrence, family="binomial")
-D_nanus_land <- glmmTMB(D_nanus~ land_use + (1|ID), data=occurrence, family="binomial")
-D_nanus_pastagem_cana_model <- glmmTMB(D_nanus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-D_nanus_pastagem_cerrado_model <- glmmTMB(D_nanus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-D_nanus_canavial_cerrado_model <- glmmTMB(D_nanus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+quadratic_D_nanus = lm(log(D_nanus$massa) ~ D_nanus$estagio + I(D_nanus$estagio^2))
+D_nanus$residuals <- residuals(quadratic_D_nanus)
+
+
+D_nanus_no_effect <- glmmTMB(residuals ~ 1 + (1|poca), dispformula = ~1, family = "gaussian", data = D_nanus) 
+D_nanus_land <- glmmTMB(residuals ~ uso_da_terra + (1|poca), dispformula = ~1, family = "gaussian", data = D_nanus) 
+D_nanus_pastagem_cana_model <- glmmTMB(residuals ~ uso_da_terra_pasto_cana + (1|poca), dispformula = ~1, family = "gaussian", data = D_nanus) 
+D_nanus_pastagem_cerrado_model <- glmmTMB(residuals ~ uso_da_terra_pasto_cerrado + (1|poca), dispformula = ~1, family = "gaussian", data = D_nanus) 
+D_nanus_canavial_cerrado_model <- glmmTMB(residuals ~ uso_da_terra_cana_cerrado + (1|poca), dispformula = ~1, family = "gaussian", data = D_nanus) 
 ```
 
 Model Selection
 
 ``` r
-AICTAB_D_nanus <- AICctab(D_nanus_no_effect, D_nanus_land, D_nanus_pastagem_cana_model,D_nanus_pastagem_cerrado_model,D_nanus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
-                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_D_nanus <- AICctab(D_nanus_no_effect, D_nanus_land, D_nanus_pastagem_cana_model,D_nanus_pastagem_cerrado_model,D_nanus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F, 
+                           mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
 
 AICTAB_D_nanus
 ```
 
     ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.7   39.9   0.0     0.0 2  0.383 
-    ## Savanna # Pasture # Sugarcane -16.8   43.5   0.9     3.5 4  0.066 
-    ## Savanna # Pasture = Sugarcane -17.2   41.5   0.5     1.6 3  0.174 
-    ## Savanna = Pasture # Sugarcane -16.8   40.7   0.9     0.8 3  0.262 
-    ## Savanna = Sugarcane # Pasture -17.6   42.3   0.1     2.4 3  0.116
+    ## No Effect                     -86.1  178.4   0.0     0.0 3  0.35  
+    ## Savanna # Pasture # Sugarcane -85.3  181.2   0.8     2.7 5  0.09  
+    ## Savanna # Pasture = Sugarcane -85.6  179.6   0.5     1.2 4  0.19  
+    ## Savanna = Pasture # Sugarcane -86.1  180.5   0.0     2.1 4  0.12  
+    ## Savanna = Sugarcane # Pasture -85.4  179.1   0.7     0.7 4  0.25
 
 ``` r
 simulationResiduals_D_nanus <- simulateResiduals(fittedModel = D_nanus_land, plot = F, seed = 3, n = 1000)
@@ -1231,104 +1229,53 @@ plotResiduals(simulationResiduals_D_nanus,  quantreg = F, cex.lab = 1.5, cex.mai
 ![](Observational_study_files/figure-gfm/unnamed-chunk-79-2.png)<!-- -->
 
 ``` r
-par(mar = c(9, 05, 1, 1))
-
-barplot(freq$D_nanus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
-        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+par(mar = c(12, 05, 1, 1))
+boxplot(residuals ~ uso_da_terra,  data = D_nanus, xaxt = "n",yaxt = "n", ylab = "BCI", xlab = "",
+        ylim = c(min(D_nanus$residuals),max(D_nanus$residuals)+0.1), cex.lab = 2, cex.axis = 1.1, pch = 16, range= 0)
 axis(2, las = 2, cex.axis = 1.5)
-axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
-axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
-#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
-box()
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 ```
 
 ![](Observational_study_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
-------------------------------------------------------------------------
-
-#### Scinax
-
 ``` r
-Scinax_no_effect <- glmmTMB(Scinax~ 1 + (1|ID), data=occurrence, family="binomial")
-Scinax_land <- glmmTMB(Scinax~ land_use + (1|ID), data=occurrence, family="binomial")
-Scinax_pastagem_cana_model <- glmmTMB(Scinax~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-Scinax_pastagem_cerrado_model <- glmmTMB(Scinax~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-Scinax_canavial_cerrado_model <- glmmTMB(Scinax~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
 ```
-
-Model Selection
-
-``` r
-AICTAB_Scinax <- AICctab(Scinax_no_effect, Scinax_land, Scinax_pastagem_cana_model,Scinax_pastagem_cerrado_model,Scinax_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
-                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
-
-AICTAB_Scinax
-```
-
-    ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.3   39.2   0.0     0.0 2  0.344 
-    ## Savanna # Pasture # Sugarcane -16.2   42.2   1.2     3.1 4  0.074 
-    ## Savanna # Pasture = Sugarcane -16.5   40.1   0.8     1.0 3  0.212 
-    ## Savanna = Pasture # Sugarcane -16.3   39.6   1.0     0.5 3  0.271 
-    ## Savanna = Sugarcane # Pasture -17.3   41.6   0.0     2.5 3  0.099
-
-``` r
-simulationResiduals_Scinax <- simulateResiduals(fittedModel = Scinax_land, plot = F, seed = 3, n = 1000)
-
-par(mar = c(6, 4, 3, 2))
-
-plotQQunif(simulationResiduals_Scinax, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-![](Observational_study_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
-
-``` r
-plotResiduals(simulationResiduals_Scinax,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-![](Observational_study_files/figure-gfm/unnamed-chunk-83-2.png)<!-- -->
-
-``` r
-par(mar = c(9, 05, 1, 1))
-
-barplot(freq$Scinax, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
-        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
-axis(2, las = 2, cex.axis = 1.5)
-axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
-axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
-#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
-box()
-```
-
-![](Observational_study_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
 
 ------------------------------------------------------------------------
 
 #### L. fuscus
 
 ``` r
-L_fuscus_no_effect <- glmmTMB(L_fuscus~ 1 + (1|ID), data=occurrence, family="binomial")
-L_fuscus_land <- glmmTMB(L_fuscus~ land_use + (1|ID), data=occurrence, family="binomial")
-L_fuscus_pastagem_cana_model <- glmmTMB(L_fuscus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-L_fuscus_pastagem_cerrado_model <- glmmTMB(L_fuscus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-L_fuscus_canavial_cerrado_model <- glmmTMB(L_fuscus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+quadratic_L_fuscus = lm(log(L_fuscus$massa) ~ L_fuscus$estagio + I(L_fuscus$estagio^2))
+L_fuscus$residuals <- residuals(quadratic_L_fuscus)
+
+
+
+L_fuscus_no_effect <- glmmTMB(residuals ~ 1 + (1|poca), dispformula = ~1, family = "gaussian", data = L_fuscus) 
+L_fuscus_land <- glmmTMB(residuals ~ uso_da_terra + (1|poca), dispformula = ~1, family = "gaussian", data = L_fuscus) 
+L_fuscus_pastagem_cana_model <- glmmTMB(residuals ~ uso_da_terra_pasto_cana + (1|poca), dispformula = ~1, family = "gaussian", data = L_fuscus) 
+L_fuscus_pastagem_cerrado_model <- glmmTMB(residuals ~ uso_da_terra_pasto_cerrado + (1|poca), dispformula = ~1, family = "gaussian", data = L_fuscus) 
+L_fuscus_canavial_cerrado_model <- glmmTMB(residuals ~ uso_da_terra_cana_cerrado + (1|poca), dispformula = ~1, family = "gaussian", data = L_fuscus) 
 ```
 
 Model Selection
 
 ``` r
-AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_cana_model,L_fuscus_pastagem_cerrado_model,L_fuscus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
-                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_L_fuscus <- AICctab(L_fuscus_no_effect, L_fuscus_land, L_fuscus_pastagem_cana_model,L_fuscus_pastagem_cerrado_model,L_fuscus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F, 
+                            mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
 
 AICTAB_L_fuscus
 ```
 
-    ##                               logLik AICc dLogLik dAICc df weight
-    ## No Effect                     -7.7   19.9  1.9     0.0  2  0.6155
-    ## Savanna # Pasture # Sugarcane -9.5   29.0  0.0     9.1  4  0.0065
-    ## Savanna # Pasture = Sugarcane -7.6   22.4  1.9     2.5  3  0.1774
-    ## Savanna = Pasture # Sugarcane -9.5   26.2  0.0     6.3  3  0.0265
-    ## Savanna = Sugarcane # Pasture -7.7   22.4  1.9     2.5  3  0.1742
+    ##                               logLik AICc  dLogLik dAICc df weight
+    ## No Effect                     -49.1  104.4   0.0     0.0 3  0.30  
+    ## Savanna # Pasture # Sugarcane -47.8  105.9   1.3     1.5 5  0.14  
+    ## Savanna # Pasture = Sugarcane -48.4  104.9   0.8     0.5 4  0.23  
+    ## Savanna = Pasture # Sugarcane -49.1  106.4   0.0     2.0 4  0.11  
+    ## Savanna = Sugarcane # Pasture -48.4  104.9   0.7     0.6 4  0.22
 
 ``` r
 simulationResiduals_L_fuscus <- simulateResiduals(fittedModel = L_fuscus_land, plot = F, seed = 3, n = 1000)
@@ -1338,55 +1285,62 @@ par(mar = c(6, 4, 3, 2))
 plotQQunif(simulationResiduals_L_fuscus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-87-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
 
 ``` r
 plotResiduals(simulationResiduals_L_fuscus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-87-2.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-83-2.png)<!-- -->
 
 ``` r
-par(mar = c(9, 05, 1, 1))
-
-barplot(freq$L_fuscus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
-        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+par(mar = c(12, 05, 1, 1))
+boxplot(residuals ~ uso_da_terra,  data = L_fuscus, xaxt = "n",yaxt = "n", ylab = "BCI", xlab = "",
+        ylim = c(min(L_fuscus$residuals),max(L_fuscus$residuals)+0.1), cex.lab = 2, cex.axis = 1.1, pch = 16, range= 0)
 axis(2, las = 2, cex.axis = 1.5)
-axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
-axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
-#text(x = c(0.5+0.3,(0.3*2)+1+0.5,(0.3*3)+2+0.5), y = c(105,105,105), labels = c("a", "a", "b"), cex = 1.5)
-box()
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-88-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
+
+``` r
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
 
 ------------------------------------------------------------------------
 
 #### P. cuvieri
 
 ``` r
-P_cuvieri_no_effect <- glmmTMB(P_cuvieri~ 1 + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_land <- glmmTMB(P_cuvieri~ land_use + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_pastagem_cana_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_pastagem_cerrado_model <- glmmTMB(P_cuvieri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-P_cuvieri_canavial_cerrado_model <- glmmTMB(P_cuvieri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+quadratic_P_cuvieri = lm(log(P_cuvieri$massa) ~ P_cuvieri$estagio + I(P_cuvieri$estagio^2))
+P_cuvieri$survey <- as.factor(P_cuvieri$survey)
+P_cuvieri$residuals <- residuals(quadratic_P_cuvieri)
+
+P_cuvieri_no_effect <- glmmTMB(residuals ~ 1 + (1|poca), dispformula = ~1, family = "gaussian", data = P_cuvieri) 
+P_cuvieri_land <- glmmTMB(residuals ~ uso_da_terra + (1|poca), dispformula = ~1, family = "gaussian", data = P_cuvieri) 
+P_cuvieri_pastagem_cana_model <- glmmTMB(residuals ~ uso_da_terra_pasto_cana + (1|poca), dispformula = ~1, family = "gaussian", data = P_cuvieri) 
+P_cuvieri_pastagem_cerrado_model <- glmmTMB(residuals ~ uso_da_terra_pasto_cerrado + (1|poca), dispformula = ~1, family = "gaussian", data = P_cuvieri) 
+P_cuvieri_canavial_cerrado_model <- glmmTMB(residuals ~ uso_da_terra_cana_cerrado + (1|poca), dispformula = ~1, family = "gaussian", data = P_cuvieri) 
 ```
 
 Model Selection
 
 ``` r
-AICTAB_P_cuvieri <- AICctab(P_cuvieri_no_effect, P_cuvieri_land, P_cuvieri_pastagem_cana_model,P_cuvieri_pastagem_cerrado_model,P_cuvieri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
-                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_P_cuvieri <- AICctab(P_cuvieri_no_effect, P_cuvieri_land, P_cuvieri_pastagem_cana_model,P_cuvieri_pastagem_cerrado_model,P_cuvieri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F, 
+                            mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+
 
 AICTAB_P_cuvieri
 ```
 
-    ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -15.1   34.8   0.0     0.8 2  0.254 
-    ## Savanna # Pasture # Sugarcane -13.4   36.7   1.7     2.7 4  0.097 
-    ## Savanna # Pasture = Sugarcane -14.2   35.4   1.0     1.4 3  0.185 
-    ## Savanna = Pasture # Sugarcane -13.5   34.0   1.7     0.0 3  0.376 
-    ## Savanna = Sugarcane # Pasture -14.9   36.9   0.2     2.9 3  0.088
+    ##                               logLik AICc   dLogLik dAICc  df weight
+    ## No Effect                     -314.8  635.7    0.0     0.0 3  0.335 
+    ## Savanna # Pasture # Sugarcane -314.0  638.1    0.8     2.4 5  0.099 
+    ## Savanna # Pasture = Sugarcane -314.6  637.3    0.2     1.6 4  0.149 
+    ## Savanna = Pasture # Sugarcane -314.0  636.1    0.8     0.4 4  0.273 
+    ## Savanna = Sugarcane # Pasture -314.6  637.4    0.2     1.7 4  0.144
 
 ``` r
 simulationResiduals_P_cuvieri <- simulateResiduals(fittedModel = P_cuvieri_land, plot = F, seed = 3, n = 1000)
@@ -1396,54 +1350,52 @@ par(mar = c(6, 4, 3, 2))
 plotQQunif(simulationResiduals_P_cuvieri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-91-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-87-1.png)<!-- -->
 
 ``` r
 plotResiduals(simulationResiduals_P_cuvieri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-91-2.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-87-2.png)<!-- -->
 
 ``` r
 par(mar = c(12, 05, 1, 1))
-barplot(freq$P_cuvieri, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
-        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+par(mar = c(12, 05, 1, 1))
+boxplot(residuals ~ uso_da_terra,  data = P_cuvieri, xaxt = "n",yaxt = "n", ylab = "BCI", xlab = "",
+        ylim = c(min(P_cuvieri$residuals),max(P_cuvieri$residuals)+0.1), cex.lab = 2, cex.axis = 1.1, pch = 16, range= 0)
 axis(2, las = 2, cex.axis = 1.5)
-axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
-axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
-#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 box()
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-92-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-88-1.png)<!-- -->
 
 ------------------------------------------------------------------------
 
 #### P. nattereri
 
 ``` r
-P_nattereri_no_effect <- glmmTMB(P_nattereri~ 1 + (1|ID), data=occurrence, family="binomial")
-P_nattereri_land <- glmmTMB(P_nattereri~ land_use + (1|ID), data=occurrence, family="binomial")
-P_nattereri_pastagem_cana_model <- glmmTMB(P_nattereri~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-P_nattereri_pastagem_cerrado_model <- glmmTMB(P_nattereri~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-P_nattereri_canavial_cerrado_model <- glmmTMB(P_nattereri~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+quadratic_P_nattereri = lm(log(P_nattereri$massa) ~ P_nattereri$estagio + I(P_nattereri$estagio^2))
+P_nattereri$residuals <- residuals(quadratic_P_nattereri)
+
+P_nattereri_no_effect <- glmmTMB(residuals ~ 1 + (1|poca), dispformula = ~1, family = "gaussian", data = P_nattereri) 
+P_nattereri_land <- glmmTMB(residuals ~ uso_da_terra + (1|poca), dispformula = ~1, family = "gaussian", data = P_nattereri) 
 ```
 
 Model Selection
 
 ``` r
-AICTAB_P_nattereri <- AICctab(P_nattereri_no_effect, P_nattereri_land, P_nattereri_pastagem_cana_model,P_nattereri_pastagem_cerrado_model,P_nattereri_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
-                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
+AICTAB_P_nattereri <- AICctab(P_nattereri_no_effect, P_nattereri_land,weights = T, base = T, logLik = T, sort = F, 
+                            mnames = c("No Effect", "Pasture # Sugarcane" ))
 
 AICTAB_P_nattereri
 ```
 
-    ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.9   40.4   0.0     0.8 2  0.25  
-    ## Savanna # Pasture # Sugarcane -16.1   42.2   1.8     2.5 4  0.10  
-    ## Savanna # Pasture = Sugarcane -16.3   39.7   1.7     0.0 3  0.36  
-    ## Savanna = Pasture # Sugarcane -16.8   40.6   1.2     0.9 3  0.22  
-    ## Savanna = Sugarcane # Pasture -17.9   42.9   0.0     3.3 3  0.07
+    ##                     logLik AICc   dLogLik dAICc  df weight
+    ## No Effect           -136.5  279.1    0.0     0.4 3  0.45  
+    ## Pasture # Sugarcane -135.3  278.7    1.2     0.0 4  0.55
 
 ``` r
 simulationResiduals_P_nattereri <- simulateResiduals(fittedModel = P_nattereri_land, plot = F, seed = 3, n = 1000)
@@ -1453,56 +1405,53 @@ par(mar = c(6, 4, 3, 2))
 plotQQunif(simulationResiduals_P_nattereri, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-95-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-91-1.png)<!-- -->
 
 ``` r
 plotResiduals(simulationResiduals_P_nattereri,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-95-2.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-91-2.png)<!-- -->
 
 ``` r
 par(mar = c(12, 05, 1, 1))
-par(mar = c(9, 05, 1, 1))
-
-barplot(freq$P_nattereri, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
-        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+boxplot(residuals ~ uso_da_terra,  data = P_nattereri, xaxt = "n",yaxt = "n", ylab = "BCI", xlab = "",
+        ylim = c(min(P_nattereri$residuals),max(P_nattereri$residuals)+0.1), cex.lab = 2, cex.axis = 1.1, pch = 16, range= 0)
 axis(2, las = 2, cex.axis = 1.5)
-axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
-axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
-#text(x = c(0.45,1.5,2.475), y = c(105,105,105), labels = c("a", "a", "a"), cex = 1.5)
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
 box()
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-96-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-92-1.png)<!-- -->
 
 ------------------------------------------------------------------------
 
 #### D. minutus
 
 ``` r
-D_minutus_no_effect <- glmmTMB(D_minutus~ 1 + (1|ID), data=occurrence, family="binomial")
-D_minutus_land <- glmmTMB(D_minutus~ land_use + (1|ID), data=occurrence, family="binomial")
-D_minutus_pastagem_cana_model <- glmmTMB(D_minutus~ land_use_pastagem_cana + (1|ID), data=occurrence, family="binomial")
-D_minutus_pastagem_cerrado_model <- glmmTMB(D_minutus~ land_use_pastagem_cerrado + (1|ID), data=occurrence, family="binomial")
-D_minutus_canavial_cerrado_model <- glmmTMB(D_minutus~ land_use_canavial_cerrado + (1|ID), data=occurrence, family="binomial")
+quadratic_D_minutus = lm(log(D_minutus$massa) ~ D_minutus$estagio + I(D_minutus$estagio^2))
+
+D_minutus$residuals <- residuals(quadratic_D_minutus)
+
+D_minutus_noeffect <- glmmTMB(residuals ~ 1 + (1|poca), dispformula = ~1, family = "gaussian", data = D_minutus) 
+D_minutus_land_use <- glmmTMB(residuals ~ uso_da_terra + (1|poca), dispformula = ~1, family = "gaussian", data = D_minutus) 
 ```
 
 Model Selection
 
 ``` r
-AICTAB_D_minutus <- AICctab(D_minutus_no_effect, D_minutus_land, D_minutus_pastagem_cana_model,D_minutus_pastagem_cerrado_model,D_minutus_canavial_cerrado_model,weights = T, base = T, logLik = T, sort = F,
-                          mnames = c("No Effect", "Savanna # Pasture # Sugarcane", "Savanna # Pasture = Sugarcane", "Savanna = Pasture # Sugarcane", "Savanna = Sugarcane # Pasture" ))
-
+AICTAB_D_minutus <- AICctab(D_minutus_noeffect,
+                            D_minutus_land_use,
+                            weights = T, base = T, logLik = T, mnames = c("No Effect", "Pasture # Sugarcane"))
 AICTAB_D_minutus
 ```
 
-    ##                               logLik AICc  dLogLik dAICc df weight
-    ## No Effect                     -17.9   40.4   0.0     0.0 2  0.46  
-    ## Savanna # Pasture # Sugarcane -17.5   44.8   0.5     4.4 4  0.05  
-    ## Savanna # Pasture = Sugarcane -17.5   42.1   0.5     1.6 3  0.20  
-    ## Savanna = Pasture # Sugarcane -17.7   42.4   0.3     2.0 3  0.17  
-    ## Savanna = Sugarcane # Pasture -17.9   42.9   0.0     2.5 3  0.13
+    ##                     logLik AICc   dLogLik dAICc  df weight
+    ## Pasture # Sugarcane -210.8  429.7    1.2     0.0 4  0.54  
+    ## No Effect           -211.9  430.0    0.0     0.3 3  0.46
 
 ``` r
 simulationResiduals_D_minutus <- simulateResiduals(fittedModel = D_minutus_land, plot = F, seed = 3, n = 1000)
@@ -1512,24 +1461,26 @@ par(mar = c(6, 4, 3, 2))
 plotQQunif(simulationResiduals_D_minutus, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-99-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-95-1.png)<!-- -->
 
 ``` r
 plotResiduals(simulationResiduals_D_minutus,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-99-2.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-95-2.png)<!-- -->
 
 ``` r
-par(mar = c(9, 05, 1, 1))
-
-barplot(freq$D_minutus, xaxt = "n", yaxt = "n", ylab = expression(paste("Frequency (%)"))
-        , xlab = "", cex.lab = 2, cex.axis = 1.1, ylim = c(0,110), xlim = c(0,4.2), width = 1, space = c(0.3,0.3,0.3), xaxs = "i") #space are fractions of width
+par(mar = c(12, 05, 1, 1))
+boxplot(residuals ~ uso_da_terra,  data = D_minutus, xaxt = "n",yaxt = "n", ylab = "BCI", xlab = "",
+        ylim = c(min(D_minutus$residuals),max(D_minutus$residuals)+0.1), cex.lab = 2, cex.axis = 1.1, pch = 16, range= 0)
 axis(2, las = 2, cex.axis = 1.5)
-axis(1, at = c(0.3+0.3, (0.3*2)+1+0.5  , (0.3*3)+2+0.5), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 1.5)
-axis(1, at = c(0.7+0.3), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 1.5)
-#text(x = c(0.5+0.3,(0.3*2)+1+0.5,(0.3*3)+2+0.5), y = c(105,105,105), labels = c("a", "a", "b"), cex = 1.5)
-box()
+axis(1, at = c(1,2,3), las = 2, labels = F, )
+axis(1, at = c(0.8,2,3), labels = c("NATIVE", "PASTURE", "SUGARCANE"), las = 2, tick = F, cex.axis = 2)
+axis(1, at = c(1.2), labels = c("HABITAT"), las = 2, tick = F, cex.axis = 2)
 ```
 
-![](Observational_study_files/figure-gfm/unnamed-chunk-100-1.png)<!-- -->
+![](Observational_study_files/figure-gfm/unnamed-chunk-96-1.png)<!-- -->
+
+``` r
+#text(x = c(1,2,3), y = c(0.4,0.45,0.8), labels = c("a", "a", "a"), cex = 1.5)
+```
